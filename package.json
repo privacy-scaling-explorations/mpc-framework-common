@@ -2,6 +2,7 @@
   "name": "mpc-framework-common",
   "version": "0.1.0",
   "description": "Supporting module for working with mpc-framework",
+  "type": "module",
   "main": "dist/src/index.js",
   "scripts": {
     "build": "rm -rf dist && tsc",
@@ -29,10 +30,5 @@
     "summon-ts": "^0.1.0",
     "tsx": "^4.16.5",
     "typescript": "^5.4.5"
-  },
-  "dependencies": {
-    "ee-typed": "^0.1.0",
-    "msgpackr": "^1.11.0",
-    "zod": "^3.23.8"
   }
 }
