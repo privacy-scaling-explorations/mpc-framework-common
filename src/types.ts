@@ -23,16 +23,16 @@ export type MpcParticipantSettings = {
 
 export type MpcSettings = MpcParticipantSettings[];
 
-export type Backend = {
+export type Engine = {
   run(
     circuit: Circuit,
     name: string,
     input: Record<string, unknown>,
     send: (to: string, msg: Uint8Array) => void,
-  ): BackendSession;
+  ): EngineSession;
 };
 
-export type BackendSession = {
+export type EngineSession = {
   handleMessage(from: string, msg: Uint8Array): void;
   output(): Promise<Record<string, unknown>>;
 };
