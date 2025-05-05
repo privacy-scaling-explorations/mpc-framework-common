@@ -2,7 +2,6 @@ import { Circuit, MpcSettings } from './types.js';
 
 export default function checkSettingsValid(
   circuit: Circuit,
-  mpcSettings: MpcSettings,
   name: string,
   input: Record<string, unknown>,
 ): Error | undefined {
@@ -17,7 +16,7 @@ export default function checkSettingsValid(
   // Check inputs are non-overlapping and match the circuit
   const participantInputs = new Set<string>();
 
-  for (const participant of mpcSettings) {
+  for (const participant of circuit.mpcSettings) {
     for (const input of participant.inputs) {
       if (participantInputs.has(input)) {
         return new Error(`Duplicate input: ${input}`);
@@ -32,7 +31,7 @@ export default function checkSettingsValid(
   }
 
   // Check output names are in the circuit
-  for (const participant of mpcSettings) {
+  for (const participant of circuit.mpcSettings) {
     for (const output of participant.outputs) {
       if (!circuitOutputs.has(output)) {
         return new Error(`Output ${output} is not in the circuit`);
@@ -43,7 +42,7 @@ export default function checkSettingsValid(
   // Check supplied inputs match our inputs
   const inputKeys = new Set(Object.keys(input));
   
-  const currentParticipant = mpcSettings.find(
+  const currentParticipant = circuit.mpcSettings.find(
     (participant, i) => (participant.name ?? i.toString()) === name,
   );
 
