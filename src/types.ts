@@ -16,7 +16,7 @@ export type CircuitIOInfo = {
 };
 
 export type MpcParticipantSettings = {
-  name?: string,
+  name: string,
   inputs: string[],
   outputs: string[],
 };
@@ -26,7 +26,6 @@ export type MpcSettings = MpcParticipantSettings[];
 export type Backend = {
   run(
     circuit: Circuit,
-    mpcSettings: MpcSettings,
     name: string,
     input: Record<string, unknown>,
     send: (to: string, msg: Uint8Array) => void,
