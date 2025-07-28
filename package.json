@@ -1,6 +1,6 @@
 {
   "name": "mpc-framework-common",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Supporting module for working with mpc-framework",
   "type": "module",
   "main": "dist/src/index.js",
