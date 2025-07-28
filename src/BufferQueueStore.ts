@@ -8,15 +8,11 @@ export default class BufferQueueStore {
   private bqs = new Map<string, BufferQueue>();
 
   /**
-   * Gets or creates a BufferQueue for a specific communication channel between parties.
-   * @param from - The sender party (number or string identifier)
-   * @param to - The recipient party (number or string identifier)
-   * @param channel - The channel identifier ('a' or 'b')
-   * @returns A BufferQueue instance for the specified communication channel
+   * Gets or creates a BufferQueue for a specific key.
+   * @param key - The unique identifier for the queue
+   * @returns A BufferQueue instance for the specified key
    */
-  get(from: number | string, to: number | string, channel: 'a' | 'b'): BufferQueue {
-    const key = `${from}-${to}-${channel}`;
-    
+  get(key: string): BufferQueue {
     if (!this.bqs.has(key)) {
       this.bqs.set(key, new BufferQueue());
     }

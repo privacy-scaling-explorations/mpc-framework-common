@@ -8,15 +8,11 @@ export default class AsyncQueueStore<T> {
   private aqs = new Map<string, AsyncQueue<T>>();
 
   /**
-   * Gets or creates an AsyncQueue for a specific communication channel.
-   * @param from - The sender identifier (number or string)
-   * @param to - The recipient identifier (number or string)
-   * @param channel - The channel identifier (typically 'a' or 'b')
-   * @returns An AsyncQueue instance for the specified communication channel
+   * Gets or creates an AsyncQueue for a specific key.
+   * @param key - The unique identifier for the queue
+   * @returns An AsyncQueue instance for the specified key
    */
-  get(from: number | string, to: number | string, channel: string): AsyncQueue<T> {
-    const key = `${from}-${to}-${channel}`;
-    
+  get(key: string): AsyncQueue<T> {
     if (!this.aqs.has(key)) {
       this.aqs.set(key, new AsyncQueue<T>());
     }
