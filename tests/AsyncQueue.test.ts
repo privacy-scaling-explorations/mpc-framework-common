@@ -430,4 +430,155 @@ describe('AsyncQueue', () => {
       expect(queue.pendingResolves.length).to.equal(0);
     });
   });
+
+  describe('close functionality', () => {
+    it('should indicate when queue is closed', () => {
+      const queue = new AsyncQueue<string>();
+      expect(queue.isClosed()).to.be.false;
+      
+      queue.close();
+      expect(queue.isClosed()).to.be.true;
+    });
+
+    it('should throw when pushing to a closed queue', () => {
+      const queue = new AsyncQueue<string>();
+      queue.close();
+      
+      expect(() => queue.push('test')).to.throw('Queue is closed');
+    });
+
+    it('should throw when popping from a closed queue', async () => {
+      const queue = new AsyncQueue<string>();
+      queue.close();
+      
+      try {
+        await queue.pop();
+        expect.fail('Should have thrown an error');
+      } catch (error) {
+        expect((error as Error).message).to.equal('Queue is closed');
+      }
+    });
+
+    it('should reject pending pops when queue is closed', async () => {
+      const queue = new AsyncQueue<string>();
+      const pop1 = queue.pop();
+      const pop2 = queue.pop();
+      const pop3 = queue.pop();
+      
+      // Verify we have pending operations
+      expect(queue.pendingResolves.length).to.equal(3);
+      
+      queue.close();
+      
+      // All pending operations should be rejected
+      const results = await Promise.allSettled([pop1, pop2, pop3]);
+      
+      results.forEach(result => {
+        expect(result.status).to.equal('rejected');
+        if (result.status === 'rejected') {
+          expect(result.reason.message).to.equal('Queue is closed');
+        }
+      });
+      
+      // Pending arrays should be cleared
+      expect(queue.pendingResolves.length).to.equal(0);
+      expect(queue.pendingRejects.length).to.equal(0);
+    });
+
+    it('should clear existing messages when closed', () => {
+      const queue = new AsyncQueue<string>();
+      queue.push('msg1');
+      queue.push('msg2');
+      queue.push('msg3');
+      
+      expect(queue.messages.length).to.equal(3);
+      
+      queue.close();
+      
+      expect(queue.messages.length).to.equal(0);
+    });
+
+    it('should handle multiple close calls gracefully', () => {
+      const queue = new AsyncQueue<string>();
+      
+      queue.close();
+      expect(queue.isClosed()).to.be.true;
+      
+      // Second close should not throw
+      queue.close();
+      expect(queue.isClosed()).to.be.true;
+    });
+
+    it('should reject mixed pending operations correctly when closed', async () => {
+      const queue = new AsyncQueue<string>();
+      const abortController = new AbortController();
+      
+      const pop1 = queue.pop(); // Normal pop
+      const pop2 = queue.pop(abortController.signal); // Pop with abort signal
+      const pop3 = queue.pop(); // Normal pop
+      
+      expect(queue.pendingResolves.length).to.equal(3);
+      expect(queue.pendingRejects.length).to.equal(3);
+      
+      queue.close();
+      
+      const results = await Promise.allSettled([pop1, pop2, pop3]);
+      
+      results.forEach(result => {
+        expect(result.status).to.equal('rejected');
+        if (result.status === 'rejected') {
+          expect(result.reason.message).to.equal('Queue is closed');
+        }
+      });
+      
+      expect(queue.pendingResolves.length).to.equal(0);
+      expect(queue.pendingRejects.length).to.equal(0);
+    });
+
+    it('should stop streams when queue is closed', async () => {
+      const queue = new AsyncQueue<string>();
+      const results: string[] = [];
+      
+      const stream = queue.stream((msg) => {
+        results.push(msg);
+      });
+      
+      queue.push('item1');
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      queue.close();
+      
+      // Give some time to see if stream tries to continue
+      await new Promise(resolve => setTimeout(resolve, 20));
+      
+      expect(results).to.deep.equal(['item1']);
+      
+      stream.stop();
+    });
+
+    it('should handle close during stream processing', async () => {
+      const queue = new AsyncQueue<string>();
+      const results: string[] = [];
+      let errorCaught = false;
+      
+      const stream = queue.stream((msg) => {
+        results.push(msg);
+        if (msg === 'item2') {
+          // Close the queue during processing
+          queue.close();
+        }
+      });
+      
+      queue.push('item1');
+      queue.push('item2');
+      
+      // Give time for processing
+      await new Promise(resolve => setTimeout(resolve, 30));
+      
+      expect(results).to.include('item1');
+      expect(results).to.include('item2');
+      
+      stream.stop();
+    });
+  });
 });
